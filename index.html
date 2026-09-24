@@ -9,15 +9,18 @@
 
   <style>
     :root {
-      --bg-color: #f8fafc;
+      --bg-color: #ffffff;
       --card-bg: #ffffff;
       --card-border: #e2e8f0;
-      --text-soft-black: #37352f;
+      --text-main: #1e293b;
       --text-sub: #64748b;
-      --text-light-gray: #a1a1aa;
+      --text-light: #94a3b8;
       --primary-accent: #6366f1;
-      --primary-light: #f1f5f9;
-      --radius: 16px;
+      --primary-light: #e0e7ff;
+      --selected-blue: #bae6fd;
+      --selected-blue-dark: #0284c7;
+      --sun-red: #ef4444;
+      --sat-blue: #3b82f6;
     }
 
     * { 
@@ -27,30 +30,25 @@
       font-style: normal !important;
     }
 
-    body {
-      width: 100vw;
-      min-height: 100vh;
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0 !important;
+      padding: 0 !important;
       background: var(--bg-color);
       font-family: "Pretendard", -apple-system, sans-serif;
-      color: var(--text-soft-black);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      user-select: none;
+      color: var(--text-main);
+      overflow: hidden;
     }
 
     .tracker-card {
       width: 100%;
-      max-width: 420px;
+      height: 100%;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-      padding: 22px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 14px;
       position: relative;
     }
 
@@ -61,9 +59,9 @@
     }
 
     .header h2 {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
-      color: var(--text-soft-black);
+      color: var(--text-main);
       letter-spacing: -0.3px;
     }
 
@@ -71,8 +69,8 @@
       background: #f8fafc;
       border: 1px solid var(--card-border);
       border-radius: 8px;
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -83,12 +81,12 @@
 
     .icon-btn:hover {
       background: #f1f5f9;
-      color: var(--text-soft-black);
+      color: var(--text-main);
       border-color: #cbd5e1;
     }
 
     .icon-btn.active {
-      background: var(--primary-light);
+      background: #e0e7ff;
       border-color: var(--primary-accent);
       color: var(--primary-accent);
     }
@@ -96,7 +94,8 @@
     .main-controls {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 12px;
+      flex: 1;
     }
 
     .action-grid {
@@ -110,7 +109,7 @@
       border-radius: 12px;
       padding: 14px 10px;
       background: #ffffff;
-      color: var(--text-soft-black);
+      color: var(--text-main);
       cursor: pointer;
       display: flex;
       flex-direction: column;
@@ -143,105 +142,274 @@
     .btn-sub-text {
       font-size: 11px;
       font-weight: 500;
-      color: var(--text-light-gray);
+      color: var(--text-light);
     }
 
+    /* 수면 시간 요약 카드 */
     .summary-box {
       background: #f8fafc;
       border: 1px solid #edf2f7;
       border-radius: 12px;
-      padding: 14px 16px;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
-      transition: background 0.15s ease;
-      min-height: 68px;
+      transition: all 0.15s ease;
+      min-height: 60px;
     }
 
     .summary-box:hover {
       background: #f1f5f9;
+      border-color: #cbd5e1;
     }
 
-    .summary-label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
+    .summary-label { font-size: 11px; font-weight: 600; color: var(--text-sub); }
     .summary-value { font-size: 16px; font-weight: 700; color: var(--primary-accent); }
-    .summary-sub { font-size: 12px; color: var(--text-sub); font-weight: 500; }
+    .summary-sub { font-size: 13px; color: var(--text-sub); font-weight: 600; }
 
-    .inline-edit-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      width: 100%;
-      align-items: flex-end;
-    }
-
-    .inline-input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      flex: 1;
-      min-width: 80px;
-    }
-
-    .inline-input-group label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-sub);
-    }
-
-    .inline-input-group input {
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 4px 6px;
-      font-size: 12px;
-      font-weight: 700;
-      outline: none;
-      width: 100%;
-      font-family: inherit;
-    }
-
-    .inline-save-btn {
-      background: var(--primary-accent);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      height: 27px;
-    }
-
+    /* 커스텀 모달 */
     .edit-modal-overlay {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(8px);
       display: none;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      padding: 20px;
-      z-index: 10;
-      backdrop-filter: blur(2px);
+      padding: 14px 16px;
+      gap: 10px;
+      z-index: 20;
+      overflow-y: auto;
     }
 
     .edit-modal-overlay.active { display: flex; }
-    .edit-title { font-size: 15px; font-weight: 700; color: var(--text-soft-black); }
-    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-    .edit-field { display: flex; flex-direction: column; gap: 4px; }
-    .edit-field label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
-    .edit-field input { border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; font-size: 13px; font-weight: 700; outline: none; font-family: inherit; }
-    .edit-btns { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
-    .edit-btn-save { flex: 1; background: var(--primary-accent); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .edit-btn-cancel { flex: 1; background: #f1f5f9; color: var(--text-sub); border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    .modal-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* 취침/기상 탭 스위처 */
+    .time-tab-group {
+      display: flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+
+    .time-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .time-tab.active {
+      background: #ffffff;
+      color: var(--primary-accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    /* 커스텀 달력 UI */
+    .calendar-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+
+    .cal-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1e293b;
+      letter-spacing: -0.2px;
+    }
+
+    .cal-nav-btn {
+      background: transparent;
+      border: none;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .cal-nav-btn:hover { background: #f1f5f9; color: var(--text-main); }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      row-gap: 4px;
+    }
+
+    .cal-day-head {
+      font-size: 11px;
+      font-weight: 700;
+      padding-bottom: 6px;
+      color: var(--text-sub);
+    }
+
+    .cal-day-head.sun { color: var(--sun-red); }
+    .cal-day-head.sat { color: var(--sat-blue); }
+
+    .cal-date-cell {
+      height: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+
+    .cal-date-cell.sun { color: var(--sun-red); }
+    .cal-date-cell.sat { color: var(--sat-blue); }
+    .cal-date-cell.muted { opacity: 0.25; }
+
+    .cal-date-cell.selected .date-number {
+      background: var(--selected-blue);
+      color: var(--selected-blue-dark);
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      position: relative;
+      box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
+    }
+
+    .cal-date-cell.selected .date-number::before {
+      content: '♥';
+      position: absolute;
+      top: -3px;
+      right: -2px;
+      font-size: 8px;
+      color: #0284c7;
+      opacity: 0.8;
+    }
+
+    /* 시간 커스텀 피커 */
+    .time-picker-card {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .time-picker-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .time-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ampm-toggle {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-accent);
+      cursor: pointer;
+    }
+
+    .time-select {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 4px 6px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* 하단 버튼 */
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .btn-save-modal {
+      flex: 1;
+      background: var(--primary-accent);
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .btn-save-modal:hover { background: #4f46e5; }
+
+    .btn-cancel-modal {
+      background: #f1f5f9;
+      color: var(--text-sub);
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
     .chart-section {
       display: none;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      flex: 1;
       animation: fadeIn 0.25s ease-in-out forwards;
     }
 
@@ -250,70 +418,57 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .chart-header {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-    }
-
-    .toggle-group {
-      display: flex;
-      background: #f1f5f9;
-      padding: 2px;
-      border-radius: 6px;
-      gap: 2px;
-    }
-
-    .toggle-btn {
-      border: none;
-      background: transparent;
-      padding: 3px 8px;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-sub);
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .toggle-btn.active {
-      background: #ffffff;
-      color: var(--text-soft-black);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-
-    .chart-container {
-      position: relative;
-      width: 100%;
-      height: 180px;
-    }
+    .chart-header { display: flex; justify-content: flex-end; align-items: center; }
+    .toggle-group { display: flex; background: #f1f5f9; padding: 2px; border-radius: 6px; gap: 2px; }
+    .toggle-btn { border: none; background: transparent; padding: 3px 8px; font-size: 11px; font-weight: 700; color: var(--text-sub); border-radius: 4px; cursor: pointer; }
+    .toggle-btn.active { background: #ffffff; color: var(--text-main); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .chart-container { position: relative; width: 100%; height: 160px; }
   </style>
 </head>
 <body>
 
 <div class="tracker-card">
-  <!-- 수면 시간 수정 모달 -->
+
+  <!-- 커스텀 모던 수정 모달 -->
   <div class="edit-modal-overlay" id="editModal">
-    <div class="edit-title">수면 기록 수정</div>
-    
-    <div class="edit-field" style="width: 100%;">
-      <label>📅 날짜 (기상일 기준)</label>
-      <input type="date" id="inputDate">
+    <div class="modal-nav">
+      <div class="modal-title">수면 시간 설정</div>
+      <button class="btn-cancel-modal" style="padding:4px 8px; font-size:11px;" onclick="closeEditModal()">✕</button>
     </div>
 
-    <div class="edit-grid">
-      <div class="edit-field">
-        <label>☀️ 기상 시각</label>
-        <input type="time" id="inputWaketime" value="09:00">
+    <!-- 취침 / 기상 탭 (문구 수정 완료) -->
+    <div class="time-tab-group">
+      <button class="time-tab active" id="tabBed" onclick="switchEditTab('bed')">🌙 취침</button>
+      <button class="time-tab" id="tabWake" onclick="switchEditTab('wake')">☀️ 기상</button>
+    </div>
+
+    <!-- 커스텀 달력 -->
+    <div class="calendar-card">
+      <div class="calendar-header">
+        <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
+        <div class="cal-title" id="calTitle">2026.09</div>
+        <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
       </div>
-      <div class="edit-field">
-        <label>🌙 취침 시각</label>
-        <input type="time" id="inputBedtime" value="01:00">
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- 렌더링 영역 -->
       </div>
     </div>
 
-    <div class="edit-btns">
-      <button class="edit-btn-save" onclick="saveManualEdit()">저장</button>
-      <button class="edit-btn-cancel" onclick="closeEditModal()">취소</button>
+    <!-- 시간 커스텀 피커 -->
+    <div class="time-picker-card">
+      <div class="time-picker-label" id="pickerLabel">🌙 취침 시간</div>
+      <div class="time-controls">
+        <button class="ampm-toggle" id="ampmBtn" onclick="toggleAmPm()">오전</button>
+        <select class="time-select" id="hourSelect"></select>
+        <span style="font-weight:700; color:var(--text-sub);">:</span>
+        <select class="time-select" id="minSelect"></select>
+      </div>
+    </div>
+
+    <!-- 저장 / 취소 -->
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeEditModal()">취소</button>
+      <button class="btn-save-modal" onclick="saveManualEdit()">저장하기</button>
     </div>
   </div>
 
@@ -342,13 +497,15 @@
       </button>
     </div>
 
-    <div class="summary-box" id="summaryBox">
-      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;" id="summaryContent">
+    <div class="summary-box" onclick="openEditModal()">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
         <div>
           <div class="summary-label">수면 시간</div>
           <div class="summary-value" id="durationDisplay">0H</div>
         </div>
-        <div class="summary-sub" id="timeRangeDisplay">기록 없음</div>
+        <div style="text-align: right;">
+          <div class="summary-sub" id="timeRangeDisplay">기록 없음</div>
+        </div>
       </div>
     </div>
   </div>
@@ -374,30 +531,41 @@
   let isGraphVisible = false;
   let sleepChartObj = null;
 
-  let clickTimer = null;
+  // 모달 내부 상태
+  let activeTab = 'bed';
+  let editBedDate = new Date();
+  let editWakeDate = new Date();
+  let viewYear = new Date().getFullYear();
+  let viewMonth = new Date().getMonth();
 
   const STORAGE_KEY_STATE = 'clean_cal_sleep_state';
   const STORAGE_KEY_LOGS = 'clean_cal_sleep_logs';
 
   window.addEventListener('DOMContentLoaded', () => {
+    initTimeOptions();
     loadState();
     renderUI();
-
-    const summaryBox = document.getElementById('summaryBox');
-
-    summaryBox.addEventListener('click', (e) => {
-      if (e.target.closest('.inline-edit-wrap')) return;
-      if (clickTimer) clearTimeout(clickTimer);
-      clickTimer = setTimeout(() => {
-        openEditModal();
-      }, 250);
-    });
-
-    summaryBox.addEventListener('dblclick', (e) => {
-      if (clickTimer) clearTimeout(clickTimer);
-      enableInlineEdit();
-    });
   });
+
+  function initTimeOptions() {
+    const hourSelect = document.getElementById('hourSelect');
+    const minSelect = document.getElementById('minSelect');
+
+    hourSelect.innerHTML = '';
+    minSelect.innerHTML = '';
+
+    for (let i = 1; i <= 12; i++) {
+      const val = String(i).padStart(2, '0');
+      hourSelect.innerHTML += `<option value="${i}">${val}</option>`;
+    }
+    for (let i = 0; i < 60; i += 5) {
+      const val = String(i).padStart(2, '0');
+      minSelect.innerHTML += `<option value="${i}">${val}</option>`;
+    }
+
+    hourSelect.addEventListener('change', updateTimeFromControls);
+    minSelect.addEventListener('change', updateTimeFromControls);
+  }
 
   function formatTimeString(dateObj) {
     if (!dateObj) return '';
@@ -449,7 +617,6 @@
     let logs = getLogs();
     logs = logs.filter(l => l.date !== newLog.date);
     logs.unshift(newLog);
-    // 날짜 역순 정렬
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
     saveLogs(logs);
   }
@@ -499,56 +666,20 @@
     };
   }
 
-  function enableInlineEdit() {
-    const logs = getLogs();
-    const latest = logs.length > 0 ? logs[0] : null;
-
-    const currentDate = latest ? latest.date : formatDateString(new Date());
-    const currentBed = latest ? latest.bedtimeStr : '01:00';
-    const currentWake = latest ? latest.waketimeStr : '09:00';
-
-    const summaryBox = document.getElementById('summaryBox');
-    summaryBox.innerHTML = `
-      <div class="inline-edit-wrap">
-        <div class="inline-input-group" style="flex: 1.2;">
-          <label>📅 날짜</label>
-          <input type="date" id="inlineDate" value="${currentDate}">
-        </div>
-        <div class="inline-input-group">
-          <label>☀️ 기상</label>
-          <input type="time" id="inlineWaketime" value="${currentWake}">
-        </div>
-        <div class="inline-input-group">
-          <label>🌙 취침</label>
-          <input type="time" id="inlineBedtime" value="${currentBed}">
-        </div>
-        <button class="inline-save-btn" onclick="saveInlineEdit(event)">저장</button>
-      </div>
-    `;
-  }
-
-  async function saveInlineEdit(event) {
-    if (event) event.stopPropagation();
-
-    const dateVal = document.getElementById('inlineDate').value;
-    const bedVal = document.getElementById('inlineBedtime').value;
-    const wakeVal = document.getElementById('inlineWaketime').value;
-
-    if (dateVal && bedVal && wakeVal) {
-      await processTimeUpdate(dateVal, bedVal, wakeVal);
-    }
-    renderUI();
-  }
-
   function openEditModal() {
     const logs = getLogs();
+    const now = new Date();
+
     if (logs.length > 0) {
-      document.getElementById('inputDate').value = logs[0].date;
-      document.getElementById('inputBedtime').value = logs[0].bedtimeStr;
-      document.getElementById('inputWaketime').value = logs[0].waketimeStr;
+      const latest = logs[0];
+      editBedDate = new Date(latest.bedtime);
+      editWakeDate = new Date(latest.waketime);
     } else {
-      document.getElementById('inputDate').value = formatDateString(new Date());
+      editBedDate = new Date(now.getTime() - 8 * 60 * 60 * 1000);
+      editWakeDate = new Date(now);
     }
+
+    switchEditTab('bed');
     document.getElementById('editModal').classList.add('active');
   }
 
@@ -556,37 +687,130 @@
     document.getElementById('editModal').classList.remove('active');
   }
 
-  async function saveManualEdit() {
-    const dateVal = document.getElementById('inputDate').value;
-    const bedVal = document.getElementById('inputBedtime').value;
-    const wakeVal = document.getElementById('inputWaketime').value;
+  function switchEditTab(tab) {
+    activeTab = tab;
+    document.getElementById('tabBed').classList.toggle('active', tab === 'bed');
+    document.getElementById('tabWake').classList.toggle('active', tab === 'wake');
+    document.getElementById('pickerLabel').innerText = tab === 'bed' ? '🌙 취침 시간' : '☀️ 기상 시간';
 
-    if (dateVal && bedVal && wakeVal) {
-      await processTimeUpdate(dateVal, bedVal, wakeVal);
-    }
-    closeEditModal();
-    renderUI();
+    const targetDate = tab === 'bed' ? editBedDate : editWakeDate;
+    viewYear = targetDate.getFullYear();
+    viewMonth = targetDate.getMonth();
+
+    renderCalendar();
+    syncTimePickerUI();
   }
 
-  async function processTimeUpdate(dateVal, bedVal, wakeVal) {
-    const [sY, sM, sD] = dateVal.split('-').map(Number);
-    const [bH, bM] = bedVal.split(':').map(Number);
-    const [wH, wM] = wakeVal.split(':').map(Number);
+  function changeMonth(delta) {
+    viewMonth += delta;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    else if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  }
 
-    // 기상 시각 기준 날짜 설정
-    const wakeDate = new Date(sY, sM - 1, sD, wH, wM);
-    let bedDate = new Date(sY, sM - 1, sD, bH, bM);
+  function renderCalendar() {
+    const titleEl = document.getElementById('calTitle');
+    const mStr = String(viewMonth + 1).padStart(2, '0');
+    titleEl.innerText = `${viewYear}.${mStr}`;
 
-    // 취침 시각이 기상 시각보다 숫자가 크면 전날 취침한 것으로 자동 처리
-    if (bedDate > wakeDate) {
-      bedDate.setDate(bedDate.getDate() - 1);
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = `
+      <div class="cal-day-head sun">일</div>
+      <div class="cal-day-head">월</div>
+      <div class="cal-day-head">화</div>
+      <div class="cal-day-head">수</div>
+      <div class="cal-day-head">목</div>
+      <div class="cal-day-head">금</div>
+      <div class="cal-day-head sat">토</div>
+    `;
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const lastDate = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const prevLastDate = new Date(viewYear, viewMonth, 0).getDate();
+
+    const targetDateObj = activeTab === 'bed' ? editBedDate : editWakeDate;
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      grid.innerHTML += `<div class="cal-date-cell muted"><span class="date-number">${prevLastDate - i}</span></div>`;
     }
 
-    const updatedLog = calculateLogEntry(bedDate, wakeDate);
+    for (let d = 1; d <= lastDate; d++) {
+      const curDate = new Date(viewYear, viewMonth, d);
+      const dayOfWeek = curDate.getDay();
+
+      let classNames = ['cal-date-cell'];
+      if (dayOfWeek === 0) classNames.push('sun');
+      if (dayOfWeek === 6) classNames.push('sat');
+
+      const isSelected = targetDateObj.getFullYear() === viewYear &&
+                         targetDateObj.getMonth() === viewMonth &&
+                         targetDateObj.getDate() === d;
+
+      if (isSelected) classNames.push('selected');
+
+      grid.innerHTML += `
+        <div class="${classNames.join(' ')}" onclick="selectCalDate(${d})">
+          <span class="date-number">${d}</span>
+        </div>
+      `;
+    }
+  }
+
+  function selectCalDate(day) {
+    const target = activeTab === 'bed' ? editBedDate : editWakeDate;
+    target.setFullYear(viewYear);
+    target.setMonth(viewMonth);
+    target.setDate(day);
+    renderCalendar();
+  }
+
+  function syncTimePickerUI() {
+    const target = activeTab === 'bed' ? editBedDate : editWakeDate;
+    let hours = target.getHours();
+    const mins = target.getMinutes();
+
+    const isPm = hours >= 12;
+    document.getElementById('ampmBtn').innerText = isPm ? '오후' : '오전';
+
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+
+    document.getElementById('hourSelect').value = hours;
+
+    const roundedMin = Math.round(mins / 5) * 5;
+    document.getElementById('minSelect').value = roundedMin >= 60 ? 55 : roundedMin;
+  }
+
+  function toggleAmPm() {
+    const btn = document.getElementById('ampmBtn');
+    btn.innerText = btn.innerText === '오전' ? '오후' : '오전';
+    updateTimeFromControls();
+  }
+
+  function updateTimeFromControls() {
+    const target = activeTab === 'bed' ? editBedDate : editWakeDate;
+    const isPm = document.getElementById('ampmBtn').innerText === '오후';
+    let hour = parseInt(document.getElementById('hourSelect').value);
+    const min = parseInt(document.getElementById('minSelect').value);
+
+    if (isPm && hour < 12) hour += 12;
+    if (!isPm && hour === 12) hour = 0;
+
+    target.setHours(hour);
+    target.setMinutes(min);
+  }
+
+  async function saveManualEdit() {
+    updateTimeFromControls();
+
+    const updatedLog = calculateLogEntry(editBedDate, editWakeDate);
     saveLogEntry(updatedLog);
 
     if (isGraphVisible) updateChart();
     await sendToNotion(updatedLog);
+
+    closeEditModal();
+    renderUI();
   }
 
   async function sendToNotion(log) {
@@ -612,7 +836,8 @@
   function renderUI() {
     const bedtimeSub = document.getElementById('bedtimeSub');
     const waketimeSub = document.getElementById('waketimeSub');
-    const summaryBox = document.getElementById('summaryBox');
+    const durationDisplay = document.getElementById('durationDisplay');
+    const timeRangeDisplay = document.getElementById('timeRangeDisplay');
 
     const logs = getLogs();
     const latest = logs.length > 0 ? logs[0] : null;
@@ -625,15 +850,8 @@
       bedtimeSub.innerText = '(-)';
     }
 
-    summaryBox.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;" id="summaryContent">
-        <div>
-          <div class="summary-label">수면 시간</div>
-          <div class="summary-value" id="durationDisplay">${latest ? latest.durationStr : '0H'}</div>
-        </div>
-        <div class="summary-sub" id="timeRangeDisplay">${latest ? `${latest.date.substring(5)} (${latest.bedtimeStr} ~${latest.waketimeStr})` : '기록 없음'}</div>
-      </div>
-    `;
+    durationDisplay.innerText = latest ? latest.durationStr : '0H';
+    timeRangeDisplay.innerText = latest ? `${latest.date.substring(5)} (${latest.bedtimeStr} ~ ${latest.waketimeStr})` : '기록 없음';
   }
 
   function toggleGraphView() {
@@ -681,7 +899,7 @@
         scales: {
           x: {
             grid: { display: false },
-            ticks: { font: { family: 'Pretendard', size: 11, weight: '600' }, color: '#37352f' }
+            ticks: { font: { family: 'Pretendard', size: 11, weight: '600' }, color: '#1e293b' }
           },
           y: {
             beginAtZero: true,
