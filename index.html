@@ -166,7 +166,7 @@
 
     .summary-label { font-size: 11px; font-weight: 600; color: var(--text-sub); }
     .summary-value { font-size: 16px; font-weight: 700; color: var(--primary-accent); }
-    .summary-sub { font-size: 13px; color: var(--text-sub); font-weight: 600; }
+    .summary-sub { font-size: 12px; color: var(--text-sub); font-weight: 600; }
 
     /* 커스텀 모달 */
     .edit-modal-overlay {
@@ -315,16 +315,6 @@
       box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
     }
 
-    .cal-date-cell.selected .date-number::before {
-      content: '♥';
-      position: absolute;
-      top: -3px;
-      right: -2px;
-      font-size: 8px;
-      color: #0284c7;
-      opacity: 0.8;
-    }
-
     /* 시간 커스텀 피커 */
     .time-picker-card {
       background: #f8fafc;
@@ -429,32 +419,30 @@
 
 <div class="tracker-card">
 
-  <!-- 커스텀 모던 수정 모달 -->
+  <!-- 수정 모달 -->
   <div class="edit-modal-overlay" id="editModal">
     <div class="modal-nav">
-      <div class="modal-title">수면 시간 설정</div>
+      <div class="modal-title">수면 기록 수정/설정</div>
       <button class="btn-cancel-modal" style="padding:4px 8px; font-size:11px;" onclick="closeEditModal()">✕</button>
     </div>
 
-    <!-- 취침 / 기상 탭 (문구 수정 완료) -->
+    <!-- 취침 / 기상 탭 -->
     <div class="time-tab-group">
       <button class="time-tab active" id="tabBed" onclick="switchEditTab('bed')">🌙 취침</button>
       <button class="time-tab" id="tabWake" onclick="switchEditTab('wake')">☀️ 기상</button>
     </div>
 
-    <!-- 커스텀 달력 -->
+    <!-- 달력 -->
     <div class="calendar-card">
       <div class="calendar-header">
         <button class="cal-nav-btn" onclick="changeMonth(-1)">&lt;</button>
         <div class="cal-title" id="calTitle">2026.09</div>
         <button class="cal-nav-btn" onclick="changeMonth(1)">&gt;</button>
       </div>
-      <div class="calendar-grid" id="calendarGrid">
-        <!-- 렌더링 영역 -->
-      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 
-    <!-- 시간 커스텀 피커 -->
+    <!-- 시간 피커 -->
     <div class="time-picker-card">
       <div class="time-picker-label" id="pickerLabel">🌙 취침 시간</div>
       <div class="time-controls">
@@ -465,14 +453,14 @@
       </div>
     </div>
 
-    <!-- 저장 / 취소 -->
+    <!-- 하단 버튼 -->
     <div class="modal-actions">
       <button class="btn-cancel-modal" onclick="closeEditModal()">취소</button>
       <button class="btn-save-modal" onclick="saveManualEdit()">저장하기</button>
     </div>
   </div>
 
-  <!-- 헤더 -->
+  <!-- 메인 헤더 -->
   <div class="header">
     <h2>Sleep Tracker</h2>
     <button class="icon-btn" id="graphToggleBtn" onclick="toggleGraphView()" title="그래프 보기">
@@ -500,7 +488,7 @@
     <div class="summary-box" onclick="openEditModal()">
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
         <div>
-          <div class="summary-label">수면 시간</div>
+          <div class="summary-label">최근 수면 시간</div>
           <div class="summary-value" id="durationDisplay">0H</div>
         </div>
         <div style="text-align: right;">
@@ -531,10 +519,11 @@
   let isGraphVisible = false;
   let sleepChartObj = null;
 
-  // 모달 내부 상태
+  // 모달 내부 수정 전용 상태
   let activeTab = 'bed';
   let editBedDate = new Date();
   let editWakeDate = new Date();
+  let editingOriginalDate = null; // 수정 전 기상 날짜 기억용
   let viewYear = new Date().getFullYear();
   let viewMonth = new Date().getMonth();
 
@@ -581,6 +570,12 @@
     return `${y}-${m}-${d}`;
   }
 
+  function formatShortDate(dateObj) {
+    const m = dateObj.getMonth() + 1;
+    const d = dateObj.getDate();
+    return `${m}/${d}`;
+  }
+
   function formatDurationText(diffMins) {
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
@@ -613,9 +608,20 @@
     localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
   }
 
-  function saveLogEntry(newLog) {
+  /*
+   * 덮어쓰기 로직:
+   * 동일한 기상 날짜(newLog.date) 또는 기존 수정 대상 날짜(oldLogDate)에
+   * 대당하는 기록을 제거하고 새로운 입력 건으로 완전히 교체(OverWrite)합니다.
+   */
+  function saveLogEntry(newLog, oldLogDate = null) {
     let logs = getLogs();
-    logs = logs.filter(l => l.date !== newLog.date);
+
+    logs = logs.filter(l => {
+      if (oldLogDate && l.date === oldLogDate) return false;
+      if (l.date === newLog.date) return false;
+      return true;
+    });
+
     logs.unshift(newLog);
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
     saveLogs(logs);
@@ -649,16 +655,20 @@
   }
 
   function calculateLogEntry(bedTimeObj, wakeTimeObj) {
-    const diffMs = wakeTimeObj - bedTimeObj;
-    const diffMins = Math.max(0, Math.floor(diffMs / (1000 * 60)));
+    let diffMs = wakeTimeObj - bedTimeObj;
+    if (diffMs < 0) diffMs = 0; // 날짜 설정 오류 시 최소 0 처리
+
+    const diffMins = Math.floor(diffMs / (1000 * 60));
     const durationStr = formatDurationText(diffMins);
     const decimalHours = parseFloat((diffMins / 60).toFixed(1));
 
     return {
-      id: 'sleep_' + Date.now(),
-      date: formatDateString(wakeTimeObj),
+      id: 'sleep_' + formatDateString(wakeTimeObj),
+      date: formatDateString(wakeTimeObj), // 기상 일자 키값
       bedtime: bedTimeObj.toISOString(),
       waketime: wakeTimeObj.toISOString(),
+      bedDateStr: formatDateString(bedTimeObj),
+      wakeDateStr: formatDateString(wakeTimeObj),
       bedtimeStr: formatTimeString(bedTimeObj),
       waketimeStr: formatTimeString(wakeTimeObj),
       durationStr: durationStr,
@@ -674,9 +684,11 @@
       const latest = logs[0];
       editBedDate = new Date(latest.bedtime);
       editWakeDate = new Date(latest.waketime);
+      editingOriginalDate = latest.date;
     } else {
       editBedDate = new Date(now.getTime() - 8 * 60 * 60 * 1000);
       editWakeDate = new Date(now);
+      editingOriginalDate = null;
     }
 
     switchEditTab('bed');
@@ -803,8 +815,15 @@
   async function saveManualEdit() {
     updateTimeFromControls();
 
+    if (editWakeDate < editBedDate) {
+      alert('기상 시각이 취침 시각보다 빠를 수 없습니다. 날짜 및 시간을 확인해주세요.');
+      return;
+    }
+
     const updatedLog = calculateLogEntry(editBedDate, editWakeDate);
-    saveLogEntry(updatedLog);
+    
+    // 이전 날짜 기록 제거 후 새 데이터로 덮어쓰기 저장
+    saveLogEntry(updatedLog, editingOriginalDate);
 
     if (isGraphVisible) updateChart();
     await sendToNotion(updatedLog);
@@ -851,7 +870,20 @@
     }
 
     durationDisplay.innerText = latest ? latest.durationStr : '0H';
-    timeRangeDisplay.innerText = latest ? `${latest.date.substring(5)} (${latest.bedtimeStr} ~ ${latest.waketimeStr})` : '기록 없음';
+    
+    if (latest) {
+      const bedObj = new Date(latest.bedtime);
+      const wakeObj = new Date(latest.waketime);
+      const isSameDay = formatDateString(bedObj) === formatDateString(wakeObj);
+
+      if (isSameDay) {
+        timeRangeDisplay.innerText = `${formatShortDate(wakeObj)} (${latest.bedtimeStr} ~ ${latest.waketimeStr})`;
+      } else {
+        timeRangeDisplay.innerText = `${formatShortDate(bedObj)} ${latest.bedtimeStr} ~ ${formatShortDate(wakeObj)} ${latest.waketimeStr}`;
+      }
+    } else {
+      timeRangeDisplay.innerText = '기록 없음';
+    }
   }
 
   function toggleGraphView() {
