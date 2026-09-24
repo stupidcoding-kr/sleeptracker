@@ -196,7 +196,7 @@
       color: var(--text-main);
     }
 
-    /* 취침/기상 탭 스위처 */
+    /* 기상 / 취침 탭 스위처 */
     .time-tab-group {
       display: flex;
       background: #f1f5f9;
@@ -426,10 +426,10 @@
       <button class="btn-cancel-modal" style="padding:4px 8px; font-size:11px;" onclick="closeEditModal()">✕</button>
     </div>
 
-    <!-- 취침 / 기상 탭 -->
+    <!-- 기상 / 취침 탭 (순서: 왼쪽 기상, 오른쪽 취침) -->
     <div class="time-tab-group">
-      <button class="time-tab active" id="tabBed" onclick="switchEditTab('bed')">🌙 취침</button>
-      <button class="time-tab" id="tabWake" onclick="switchEditTab('wake')">☀️ 기상</button>
+      <button class="time-tab active" id="tabWake" onclick="switchEditTab('wake')">☀️ 기상</button>
+      <button class="time-tab" id="tabBed" onclick="switchEditTab('bed')">🌙 취침</button>
     </div>
 
     <!-- 달력 -->
@@ -444,7 +444,7 @@
 
     <!-- 시간 피커 -->
     <div class="time-picker-card">
-      <div class="time-picker-label" id="pickerLabel">🌙 취침 시간</div>
+      <div class="time-picker-label" id="pickerLabel">☀️ 기상 시간</div>
       <div class="time-controls">
         <button class="ampm-toggle" id="ampmBtn" onclick="toggleAmPm()">오전</button>
         <select class="time-select" id="hourSelect"></select>
@@ -520,10 +520,10 @@
   let sleepChartObj = null;
 
   // 모달 내부 수정 전용 상태
-  let activeTab = 'bed';
+  let activeTab = 'wake';
   let editBedDate = new Date();
   let editWakeDate = new Date();
-  let editingOriginalDate = null; // 수정 전 기상 날짜 기억용
+  let editingOriginalDate = null;
   let viewYear = new Date().getFullYear();
   let viewMonth = new Date().getMonth();
 
@@ -608,11 +608,6 @@
     localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
   }
 
-  /*
-   * 덮어쓰기 로직:
-   * 동일한 기상 날짜(newLog.date) 또는 기존 수정 대상 날짜(oldLogDate)에
-   * 대당하는 기록을 제거하고 새로운 입력 건으로 완전히 교체(OverWrite)합니다.
-   */
   function saveLogEntry(newLog, oldLogDate = null) {
     let logs = getLogs();
 
@@ -656,7 +651,7 @@
 
   function calculateLogEntry(bedTimeObj, wakeTimeObj) {
     let diffMs = wakeTimeObj - bedTimeObj;
-    if (diffMs < 0) diffMs = 0; // 날짜 설정 오류 시 최소 0 처리
+    if (diffMs < 0) diffMs = 0;
 
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const durationStr = formatDurationText(diffMins);
@@ -664,7 +659,7 @@
 
     return {
       id: 'sleep_' + formatDateString(wakeTimeObj),
-      date: formatDateString(wakeTimeObj), // 기상 일자 키값
+      date: formatDateString(wakeTimeObj),
       bedtime: bedTimeObj.toISOString(),
       waketime: wakeTimeObj.toISOString(),
       bedDateStr: formatDateString(bedTimeObj),
@@ -691,7 +686,7 @@
       editingOriginalDate = null;
     }
 
-    switchEditTab('bed');
+    switchEditTab('wake'); // 왼쪽 첫 번째 탭인 기상 탭을 기본 활성화
     document.getElementById('editModal').classList.add('active');
   }
 
@@ -701,11 +696,11 @@
 
   function switchEditTab(tab) {
     activeTab = tab;
-    document.getElementById('tabBed').classList.toggle('active', tab === 'bed');
     document.getElementById('tabWake').classList.toggle('active', tab === 'wake');
-    document.getElementById('pickerLabel').innerText = tab === 'bed' ? '🌙 취침 시간' : '☀️ 기상 시간';
+    document.getElementById('tabBed').classList.toggle('active', tab === 'bed');
+    document.getElementById('pickerLabel').innerText = tab === 'wake' ? '☀️ 기상 시간' : '🌙 취침 시간';
 
-    const targetDate = tab === 'bed' ? editBedDate : editWakeDate;
+    const targetDate = tab === 'wake' ? editWakeDate : editBedDate;
     viewYear = targetDate.getFullYear();
     viewMonth = targetDate.getMonth();
 
@@ -740,7 +735,7 @@
     const lastDate = new Date(viewYear, viewMonth + 1, 0).getDate();
     const prevLastDate = new Date(viewYear, viewMonth, 0).getDate();
 
-    const targetDateObj = activeTab === 'bed' ? editBedDate : editWakeDate;
+    const targetDateObj = activeTab === 'wake' ? editWakeDate : editBedDate;
 
     for (let i = firstDay - 1; i >= 0; i--) {
       grid.innerHTML += `<div class="cal-date-cell muted"><span class="date-number">${prevLastDate - i}</span></div>`;
@@ -769,7 +764,7 @@
   }
 
   function selectCalDate(day) {
-    const target = activeTab === 'bed' ? editBedDate : editWakeDate;
+    const target = activeTab === 'wake' ? editWakeDate : editBedDate;
     target.setFullYear(viewYear);
     target.setMonth(viewMonth);
     target.setDate(day);
@@ -777,7 +772,7 @@
   }
 
   function syncTimePickerUI() {
-    const target = activeTab === 'bed' ? editBedDate : editWakeDate;
+    const target = activeTab === 'wake' ? editWakeDate : editBedDate;
     let hours = target.getHours();
     const mins = target.getMinutes();
 
@@ -800,7 +795,7 @@
   }
 
   function updateTimeFromControls() {
-    const target = activeTab === 'bed' ? editBedDate : editWakeDate;
+    const target = activeTab === 'wake' ? editWakeDate : editBedDate;
     const isPm = document.getElementById('ampmBtn').innerText === '오후';
     let hour = parseInt(document.getElementById('hourSelect').value);
     const min = parseInt(document.getElementById('minSelect').value);
@@ -822,7 +817,6 @@
 
     const updatedLog = calculateLogEntry(editBedDate, editWakeDate);
     
-    // 이전 날짜 기록 제거 후 새 데이터로 덮어쓰기 저장
     saveLogEntry(updatedLog, editingOriginalDate);
 
     if (isGraphVisible) updateChart();
