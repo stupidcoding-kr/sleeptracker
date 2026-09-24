@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sleep Tracker</title>
+  <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-soft-black: #37352f;
+      --text-sub: #64748b;
+      --text-light-gray: #a1a1aa;
+      --primary-accent: #6366f1;
+      --primary-light: #f1f5f9;
+      --radius: 16px;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-style: normal !important;
+    }
+
+    body {
+      width: 100vw;
+      min-height: 100vh;
+      background: var(--bg-color);
+      font-family: "Pretendard", -apple-system, sans-serif;
+      color: var(--text-soft-black);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+    }
+
+    .tracker-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-soft-black);
+      letter-spacing: -0.3px;
+    }
+
+    .icon-btn {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: var(--text-sub);
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: #f1f5f9;
+      color: var(--text-soft-black);
+      border-color: #cbd5e1;
+    }
+
+    .icon-btn.active {
+      background: var(--primary-light);
+      border-color: var(--primary-accent);
+      color: var(--primary-accent);
+    }
+
+    .main-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-action {
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 10px;
+      background: #ffffff;
+      color: var(--text-soft-black);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: inherit;
+    }
+
+    .btn-action:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-action:active {
+      transform: scale(0.98);
+      background: #f1f5f9;
+    }
+
+    .btn-main-text {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-sub-text {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-light-gray);
+    }
+
+    .summary-box {
+      background: #f8fafc;
+      border: 1px solid #edf2f7;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      min-height: 68px;
+    }
+
+    .summary-box:hover {
+      background: #f1f5f9;
+    }
+
+    .summary-label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
+    .summary-value { font-size: 16px; font-weight: 700; color: var(--primary-accent); }
+    .summary-sub { font-size: 12px; color: var(--text-sub); font-weight: 500; }
+
+    .inline-edit-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      width: 100%;
+      align-items: flex-end;
+    }
+
+    .inline-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .inline-input-group label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-sub);
+    }
+
+    .inline-input-group input {
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .inline-save-btn {
+      background: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      height: 27px;
+    }
+
+    .edit-modal-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: var(--radius);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 20px;
+      z-index: 10;
+      backdrop-filter: blur(2px);
+    }
+
+    .edit-modal-overlay.active { display: flex; }
+    .edit-title { font-size: 15px; font-weight: 700; color: var(--text-soft-black); }
+    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+    .edit-field { display: flex; flex-direction: column; gap: 4px; }
+    .edit-field label { font-size: 12px; font-weight: 600; color: var(--text-sub); }
+    .edit-field input { border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; font-size: 13px; font-weight: 700; outline: none; font-family: inherit; }
+    .edit-btns { display: flex; gap: 8px; width: 100%; margin-top: 4px; }
+    .edit-btn-save { flex: 1; background: var(--primary-accent); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .edit-btn-cancel { flex: 1; background: #f1f5f9; color: var(--text-sub); border: none; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+    .chart-section {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeIn 0.25s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .toggle-group {
+      display: flex;
+      background: #f1f5f9;
+      padding: 2px;
+      border-radius: 6px;
+      gap: 2px;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .toggle-btn.active {
+      background: #ffffff;
+      color: var(--text-soft-black);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 180px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="tracker-card">
+  <!-- 수면 시간 수정 모달 -->
+  <div class="edit-modal-overlay" id="editModal">
+    <div class="edit-title">수면 기록 수정</div>
+    
+    <div class="edit-field" style="width: 100%;">
+      <label>📅 날짜 (기상일 기준)</label>
+      <input type="date" id="inputDate">
+    </div>
+
+    <div class="edit-grid">
+      <div class="edit-field">
+        <label>☀️ 기상 시각</label>
+        <input type="time" id="inputWaketime" value="09:00">
+      </div>
+      <div class="edit-field">
+        <label>🌙 취침 시각</label>
+        <input type="time" id="inputBedtime" value="01:00">
+      </div>
+    </div>
+
+    <div class="edit-btns">
+      <button class="edit-btn-save" onclick="saveManualEdit()">저장</button>
+      <button class="edit-btn-cancel" onclick="closeEditModal()">취소</button>
+    </div>
+  </div>
+
+  <!-- 헤더 -->
+  <div class="header">
+    <h2>Sleep Tracker</h2>
+    <button class="icon-btn" id="graphToggleBtn" onclick="toggleGraphView()" title="그래프 보기">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"></line>
+        <line x1="12" y1="20" x2="12" y2="4"></line>
+        <line x1="6" y1="20" x2="6" y2="14"></line>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 메인 컨트롤 영역 -->
+  <div class="main-controls" id="mainControls">
+    <div class="action-grid">
+      <button class="btn-action btn-wake" id="btnWake" onclick="handleWakeClick()">
+        <span class="btn-main-text">☀️ 기상</span>
+        <span class="btn-sub-text" id="waketimeSub">(-)</span>
+      </button>
+      <button class="btn-action btn-sleep" id="btnSleep" onclick="handleSleepClick()">
+        <span class="btn-main-text">🌙 취침</span>
+        <span class="btn-sub-text" id="bedtimeSub">(-)</span>
+      </button>
+    </div>
+
+    <div class="summary-box" id="summaryBox">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;" id="summaryContent">
+        <div>
+          <div class="summary-label">수면 시간</div>
+          <div class="summary-value" id="durationDisplay">0H</div>
+        </div>
+        <div class="summary-sub" id="timeRangeDisplay">기록 없음</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 그래프 영역 -->
+  <div class="chart-section" id="chartSection">
+    <div class="chart-header">
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btnWeekly" onclick="switchChartView('weekly')">주별</button>
+        <button class="toggle-btn" id="btnMonthly" onclick="switchChartView('monthly')">월별</button>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="sleepChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let isSleeping = false;
+  let currentBedtime = null;
+  let chartView = 'weekly';
+  let isGraphVisible = false;
+  let sleepChartObj = null;
+
+  let clickTimer = null;
+
+  const STORAGE_KEY_STATE = 'clean_cal_sleep_state';
+  const STORAGE_KEY_LOGS = 'clean_cal_sleep_logs';
+
+  window.addEventListener('DOMContentLoaded', () => {
+    loadState();
+    renderUI();
+
+    const summaryBox = document.getElementById('summaryBox');
+
+    summaryBox.addEventListener('click', (e) => {
+      if (e.target.closest('.inline-edit-wrap')) return;
+      if (clickTimer) clearTimeout(clickTimer);
+      clickTimer = setTimeout(() => {
+        openEditModal();
+      }, 250);
+    });
+
+    summaryBox.addEventListener('dblclick', (e) => {
+      if (clickTimer) clearTimeout(clickTimer);
+      enableInlineEdit();
+    });
+  });
+
+  function formatTimeString(dateObj) {
+    if (!dateObj) return '';
+    const hours = String(dateObj.getHours()).padStart(2, '0');
+    const mins = String(dateObj.getMinutes()).padStart(2, '0');
+    return `${hours}:${mins}`;
+  }
+
+  function formatDateString(dateObj) {
+    const y = dateObj.getFullYear();
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function formatDurationText(diffMins) {
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    if (mins === 0) return `${hours}H`;
+    return `${hours}H ${mins}M`;
+  }
+
+  function loadState() {
+    const savedState = localStorage.getItem(STORAGE_KEY_STATE);
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      isSleeping = parsed.isSleeping;
+      currentBedtime = parsed.currentBedtime ? new Date(parsed.currentBedtime) : null;
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
+      isSleeping,
+      currentBedtime: currentBedtime ? currentBedtime.toISOString() : null
+    }));
+  }
+
+  function getLogs() {
+    const saved = localStorage.getItem(STORAGE_KEY_LOGS);
+    return saved ? JSON.parse(saved) : [];
+  }
+
+  function saveLogs(logs) {
+    localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+  }
+
+  function saveLogEntry(newLog) {
+    let logs = getLogs();
+    logs = logs.filter(l => l.date !== newLog.date);
+    logs.unshift(newLog);
+    // 날짜 역순 정렬
+    logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+    saveLogs(logs);
+  }
+
+  function handleSleepClick() {
+    currentBedtime = new Date();
+    isSleeping = true;
+    saveState();
+    renderUI();
+  }
+
+  async function handleWakeClick() {
+    if (!currentBedtime) {
+      currentBedtime = new Date(Date.now() - 8 * 60 * 60 * 1000);
+    }
+
+    const wakeTime = new Date();
+    const logEntry = calculateLogEntry(currentBedtime, wakeTime);
+
+    saveLogEntry(logEntry);
+
+    isSleeping = false;
+    currentBedtime = null;
+    saveState();
+
+    renderUI();
+    if (isGraphVisible) updateChart();
+
+    await sendToNotion(logEntry);
+  }
+
+  function calculateLogEntry(bedTimeObj, wakeTimeObj) {
+    const diffMs = wakeTimeObj - bedTimeObj;
+    const diffMins = Math.max(0, Math.floor(diffMs / (1000 * 60)));
+    const durationStr = formatDurationText(diffMins);
+    const decimalHours = parseFloat((diffMins / 60).toFixed(1));
+
+    return {
+      id: 'sleep_' + Date.now(),
+      date: formatDateString(wakeTimeObj),
+      bedtime: bedTimeObj.toISOString(),
+      waketime: wakeTimeObj.toISOString(),
+      bedtimeStr: formatTimeString(bedTimeObj),
+      waketimeStr: formatTimeString(wakeTimeObj),
+      durationStr: durationStr,
+      durationHours: decimalHours
+    };
+  }
+
+  function enableInlineEdit() {
+    const logs = getLogs();
+    const latest = logs.length > 0 ? logs[0] : null;
+
+    const currentDate = latest ? latest.date : formatDateString(new Date());
+    const currentBed = latest ? latest.bedtimeStr : '01:00';
+    const currentWake = latest ? latest.waketimeStr : '09:00';
+
+    const summaryBox = document.getElementById('summaryBox');
+    summaryBox.innerHTML = `
+      <div class="inline-edit-wrap">
+        <div class="inline-input-group" style="flex: 1.2;">
+          <label>📅 날짜</label>
+          <input type="date" id="inlineDate" value="${currentDate}">
+        </div>
+        <div class="inline-input-group">
+          <label>☀️ 기상</label>
+          <input type="time" id="inlineWaketime" value="${currentWake}">
+        </div>
+        <div class="inline-input-group">
+          <label>🌙 취침</label>
+          <input type="time" id="inlineBedtime" value="${currentBed}">
+        </div>
+        <button class="inline-save-btn" onclick="saveInlineEdit(event)">저장</button>
+      </div>
+    `;
+  }
+
+  async function saveInlineEdit(event) {
+    if (event) event.stopPropagation();
+
+    const dateVal = document.getElementById('inlineDate').value;
+    const bedVal = document.getElementById('inlineBedtime').value;
+    const wakeVal = document.getElementById('inlineWaketime').value;
+
+    if (dateVal && bedVal && wakeVal) {
+      await processTimeUpdate(dateVal, bedVal, wakeVal);
+    }
+    renderUI();
+  }
+
+  function openEditModal() {
+    const logs = getLogs();
+    if (logs.length > 0) {
+      document.getElementById('inputDate').value = logs[0].date;
+      document.getElementById('inputBedtime').value = logs[0].bedtimeStr;
+      document.getElementById('inputWaketime').value = logs[0].waketimeStr;
+    } else {
+      document.getElementById('inputDate').value = formatDateString(new Date());
+    }
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+  }
+
+  async function saveManualEdit() {
+    const dateVal = document.getElementById('inputDate').value;
+    const bedVal = document.getElementById('inputBedtime').value;
+    const wakeVal = document.getElementById('inputWaketime').value;
+
+    if (dateVal && bedVal && wakeVal) {
+      await processTimeUpdate(dateVal, bedVal, wakeVal);
+    }
+    closeEditModal();
+    renderUI();
+  }
+
+  async function processTimeUpdate(dateVal, bedVal, wakeVal) {
+    const [sY, sM, sD] = dateVal.split('-').map(Number);
+    const [bH, bM] = bedVal.split(':').map(Number);
+    const [wH, wM] = wakeVal.split(':').map(Number);
+
+    // 기상 시각 기준 날짜 설정
+    const wakeDate = new Date(sY, sM - 1, sD, wH, wM);
+    let bedDate = new Date(sY, sM - 1, sD, bH, bM);
+
+    // 취침 시각이 기상 시각보다 숫자가 크면 전날 취침한 것으로 자동 처리
+    if (bedDate > wakeDate) {
+      bedDate.setDate(bedDate.getDate() - 1);
+    }
+
+    const updatedLog = calculateLogEntry(bedDate, wakeDate);
+    saveLogEntry(updatedLog);
+
+    if (isGraphVisible) updateChart();
+    await sendToNotion(updatedLog);
+  }
+
+  async function sendToNotion(log) {
+    try {
+      const payload = {
+        title: `수면 ${log.durationStr}`,
+        bedtime: log.bedtime,
+        waketime: log.waketime,
+        bedtimeStr: log.bedtimeStr,
+        waketimeStr: log.waketimeStr
+      };
+
+      await fetch('/api/notion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.warn('노션 API 전송 실패:', e);
+    }
+  }
+
+  function renderUI() {
+    const bedtimeSub = document.getElementById('bedtimeSub');
+    const waketimeSub = document.getElementById('waketimeSub');
+    const summaryBox = document.getElementById('summaryBox');
+
+    const logs = getLogs();
+    const latest = logs.length > 0 ? logs[0] : null;
+
+    if (isSleeping) {
+      bedtimeSub.innerText = currentBedtime ? `(${formatTimeString(currentBedtime)})` : '(-)';
+      waketimeSub.innerText = '(-)';
+    } else {
+      waketimeSub.innerText = latest ? `(${latest.waketimeStr})` : '(-)';
+      bedtimeSub.innerText = '(-)';
+    }
+
+    summaryBox.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;" id="summaryContent">
+        <div>
+          <div class="summary-label">수면 시간</div>
+          <div class="summary-value" id="durationDisplay">${latest ? latest.durationStr : '0H'}</div>
+        </div>
+        <div class="summary-sub" id="timeRangeDisplay">${latest ? `${latest.date.substring(5)} (${latest.bedtimeStr} ~${latest.waketimeStr})` : '기록 없음'}</div>
+      </div>
+    `;
+  }
+
+  function toggleGraphView() {
+    const section = document.getElementById('chartSection');
+    const mainControls = document.getElementById('mainControls');
+    const toggleBtn = document.getElementById('graphToggleBtn');
+
+    isGraphVisible = !isGraphVisible;
+    if (isGraphVisible) {
+      mainControls.style.display = 'none';
+      section.style.display = 'flex';
+      toggleBtn.classList.add('active');
+      if (!sleepChartObj) initChart();
+      else updateChart();
+    } else {
+      section.style.display = 'none';
+      mainControls.style.display = 'flex';
+      toggleBtn.classList.remove('active');
+    }
+  }
+
+  function switchChartView(view) {
+    chartView = view;
+    document.getElementById('btnWeekly').classList.toggle('active', view === 'weekly');
+    document.getElementById('btnMonthly').classList.toggle('active', view === 'monthly');
+    updateChart();
+  }
+
+  function initChart() {
+    const ctx = document.getElementById('sleepChart').getContext('2d');
+    sleepChartObj = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => chartView === 'weekly' ? `수면: ${ctx.parsed.y}시간` : `월평균: ${ctx.parsed.y}시간`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { family: 'Pretendard', size: 11, weight: '600' }, color: '#37352f' }
+          },
+          y: {
+            beginAtZero: true,
+            max: 12,
+            grid: { color: '#f1f5f9' },
+            ticks: { font: { family: 'Pretendard', size: 10 }, color: '#94a3b8', stepSize: 3 }
+          }
+        }
+      }
+    });
+    updateChart();
+  }
+
+  function updateChart() {
+    if (!sleepChartObj) return;
+
+    const logs = getLogs();
+    const labels = [];
+    const dataValues = [];
+
+    if (chartView === 'weekly') {
+      const now = new Date();
+      const currentDay = now.getDay();
+      const distToMon = (currentDay === 0 ? -6 : 1 - currentDay);
+      
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + distToMon);
+
+      const dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+
+      const logMap = {};
+      logs.forEach(l => {
+        logMap[l.date] = l.durationHours;
+      });
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const dateStr = formatDateString(d);
+
+        labels.push(dayLabels[i]);
+        dataValues.push(logMap[dateStr] || 0);
+      }
+    } else {
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const targetMonthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const year = targetMonthDate.getFullYear();
+        const month = targetMonthDate.getMonth() + 1;
+        const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;
+
+        const monthLogs = logs.filter(l => l.date.startsWith(monthPrefix));
+        let avgHours = 0;
+        if (monthLogs.length > 0) {
+          const totalHours = monthLogs.reduce((acc, cur) => acc + cur.durationHours, 0);
+          avgHours = parseFloat((totalHours / monthLogs.length).toFixed(1));
+        }
+
+        labels.push(`${month}월`);
+        dataValues.push(avgHours);
+      }
+    }
+
+    sleepChartObj.data = {
+      labels: labels,
+      datasets: [{
+        data: dataValues,
+        backgroundColor: chartView === 'weekly' ? '#818cf8' : '#a5b4fc',
+        hoverBackgroundColor: '#6366f1',
+        borderRadius: 5,
+        borderSkipped: false
+      }]
+    };
+    sleepChartObj.update();
+  }
+</script>
+</body>
+</html>
