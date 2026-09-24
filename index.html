@@ -488,7 +488,7 @@
     <div class="summary-box" onclick="openEditModal()">
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
         <div>
-          <div class="summary-label">최근 수면 시간</div>
+          <div class="summary-label">수면시간</div>
           <div class="summary-value" id="durationDisplay">0H</div>
         </div>
         <div style="text-align: right;">
@@ -531,6 +531,10 @@
   const STORAGE_KEY_LOGS = 'clean_cal_sleep_logs';
 
   window.addEventListener('DOMContentLoaded', () => {
+    // 기존 데이터 전체 초기화 (요청 사항 반영)
+    localStorage.removeItem(STORAGE_KEY_STATE);
+    localStorage.removeItem(STORAGE_KEY_LOGS);
+
     initTimeOptions();
     loadState();
     renderUI();
@@ -589,6 +593,9 @@
       const parsed = JSON.parse(savedState);
       isSleeping = parsed.isSleeping;
       currentBedtime = parsed.currentBedtime ? new Date(parsed.currentBedtime) : null;
+    } else {
+      isSleeping = false;
+      currentBedtime = null;
     }
   }
 
@@ -686,7 +693,7 @@
       editingOriginalDate = null;
     }
 
-    switchEditTab('wake'); // 왼쪽 첫 번째 탭인 기상 탭을 기본 활성화
+    switchEditTab('wake'); // 왼쪽 첫 번째 탭인 기상 탭 기본 활성화
     document.getElementById('editModal').classList.add('active');
   }
 
